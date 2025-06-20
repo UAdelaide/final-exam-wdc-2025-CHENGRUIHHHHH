@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>一个"挑战"</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    body { 
+      font-family: sans-serif; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    #app {
+      width: 400px;
+      padding: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    /* 这个"按钮"其实是一个div，它会在鼠标悬停时移动 */
+    .fleeing-btn {
+      padding: 15px 30px;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      position: relative; /* 使用相对定位来移动 */
+      transition: transform 0.2s ease-out; /* 让移动看起来更平滑 */
+      display: inline-block; /* 使得 transform 生效 */
+      margin-top: 20px;
+    }
+    img {
+      max-width: 100%;
+      height: 300px;
+      margin-top: 20px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2 v-if="!dogVisible">挑战：点击按钮</h2>
+    <p v-if="!dogVisible">点击下方的按钮来查看今日狗狗！</p>
+    
+    <!-- 图片出现后，按钮消失 -->
+    <div v-if="!dogVisible" 
+         class="fleeing-btn" 
+         @mouseover="flee" 
+         @click="showDog">
+      点我！
+    </div>
+    <div v-if="dogVisible">
+      <h2>今日狗狗！</h2>
+      <!-- 故意省略 alt 文本 -->
+      <img :src="dogImageUrl">
+    </div>
+  </div>
+  <script>
+    const { createApp, ref } = Vue;
+    createApp({
+      setup() {
+        const dogVisible = ref(false);
+        const dogImageUrl = ref('');
+        // 点击按钮后，加载图片并显示
+        const showDog = () => {
+          fetch('https://dog.ceo/api/breeds/image/random')
+            .then(res => res.json())
+            .then(data => {
+              dogImageUrl.value = data.message;
+              dogVisible.value = true;
+            });
+        };
+        // 按钮"逃跑"的逻辑
+        const flee = (event) => {
+          const el = event.target;
+          const newX = Math.random() * 100 - 50; // 在-50到50像素间随机移动
+          const newY = Math.random() * 100 - 50;
+          el.style.transform = `translate(${newX}px, ${newY}px)`;
+        };
+        return { dogVisible, dogImageUrl, showDog, flee };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

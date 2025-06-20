@@ -35,24 +35,62 @@ router.get('/me', (req, res) => {
   res.json(req.session.user);
 });
 
-// POST login (dummy version)
+// GET dogs for the current logged-in user
+router.get('/me/dogs', async (req, res) => {
+  // Ensure user is logged in
+  if (!req.session.user || !req.session.user.user_id) {
+    return res.status(401).json({ error: 'Not authorized' });
+  }
+
+  try {
+    const userId = req.session.user.user_id;
+    const [dogs] = await db.query(
+      'SELECT dog_id, name FROM Dogs WHERE owner_id = ?', 
+      [userId]
+    );
+    res.json(dogs);
+  } catch (error) {
+    console.error('Failed to fetch user dogs:', error);
+    res.status(500).json({ error: 'Database error while fetching dogs' });
+  }
+});
+
+// POST login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
+
+  // TEMPORARY: Direct password comparison (insecure)
+  // In a real application, you should hash the incoming password and compare it to the stored hash.
+  // For example: const isMatch = await bcrypt.compare(password, user.password_hash);
+  const tempPassCheck = password; 
 
   try {
     const [rows] = await db.query(`
       SELECT user_id, username, role FROM Users
-      WHERE email = ? AND password_hash = ?
-    `, [email, password]);
+      WHERE username = ? AND password_hash = ?
+    `, [username, tempPassCheck]);
 
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    req.session.user = rows[0]; // Save user info in session
     res.json({ message: 'Login successful', user: rows[0] });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
+});
+
+// POST logout
+router.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ message: 'Logout failed' });
+    }
+    res.clearCookie('connect.sid'); // connect.sid is the default session cookie name
+    res.json({ message: 'Logged out successfully' });
+  });
 });
 
 module.exports = router;

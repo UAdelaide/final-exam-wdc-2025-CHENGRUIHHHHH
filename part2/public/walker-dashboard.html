@@ -9,7 +9,10 @@
 </head>
 <body class="bg-light">
   <div id="app" class="container py-4">
-    <h1 class="mb-4 text-success">Walker Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="text-success mb-0">Walker Dashboard</h1>
+      <button @click="logout" class="btn btn-outline-secondary">Logout</button>
+    </div>
 
     <!-- Alert messages -->
     <div v-if="message" class="alert alert-info">{{ message }}</div>
@@ -43,7 +46,25 @@
         const walks = ref([]);
         const message = ref('');
         const error = ref('');
-        const user = 3;
+        const currentUser = ref(null);
+
+        async function getCurrentUser() {
+          try {
+            const res = await fetch('/api/users/me');
+            if (!res.ok) {
+              // If no session, redirect to login
+              if (res.status === 401) {
+                window.location.href = '/index.html';
+              }
+              throw new Error('Could not fetch user session.');
+            }
+            currentUser.value = await res.json();
+          } catch (err) {
+            error.value = err.message;
+            // Also redirect if there's an error fetching the user
+            window.location.href = '/index.html';
+          }
+        }
 
         async function loadWalkRequests() {
           try {
@@ -56,11 +77,17 @@
         }
 
         async function applyToWalk(requestId) {
+          if (!currentUser.value || !currentUser.value.user_id) {
+            error.value = 'You must be logged in to apply for a walk. Redirecting...';
+            setTimeout(() => window.location.href = '/index.html', 2000);
+            return;
+          }
+
           try {
             const res = await fetch(`/api/walks/${requestId}/apply`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walker_id: user })
+              body: JSON.stringify({ walker_id: currentUser.value.user_id })
             });
             const result = await res.json();
 
@@ -74,15 +101,30 @@
           }
         }
 
-        onMounted(() => {
-          loadWalkRequests();
+        onMounted(async () => {
+          await getCurrentUser();
+          // Only load walks if user session was successfully fetched
+          if (currentUser.value) {
+            loadWalkRequests();
+          }
         });
+
+        async function logout() {
+          try {
+            await fetch('/api/users/logout', { method: 'POST' });
+          } catch (err) {
+            console.error('Logout failed', err);
+          } finally {
+            window.location.href = '/index.html';
+          }
+        }
 
         return {
           walks,
           message,
           error,
-          applyToWalk
+          applyToWalk,
+          logout
         };
       }
     }).mount('#app');

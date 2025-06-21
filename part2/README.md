@@ -1,130 +1,114 @@
-## iconv-lite: Pure JS character encoding conversion
+[npm-image]: https://img.shields.io/npm/v/mysql2.svg
+[npm-url]: https://npmjs.com/package/mysql2
+[node-version-image]: https://img.shields.io/node/v/mysql2.svg
+[node-version-url]: https://nodejs.org/en/download
+[downloads-image]: https://img.shields.io/npm/dm/mysql2.svg
+[downloads-url]: https://npmjs.com/package/mysql2
+[license-url]: https://github.com/sidorares/node-mysql2/blob/master/License
+[license-image]: https://img.shields.io/npm/l/mysql2.svg?maxAge=2592000
+[node-mysql]: https://github.com/mysqljs/mysql
+[mysqljs]: https://github.com/mysqljs
+[mysql-native]: https://github.com/sidorares/nodejs-mysql-native
+[sidorares]: https://github.com/sidorares
+[TooTallNate]: https://gist.github.com/TooTallNate
+[starttls.js]: https://gist.github.com/TooTallNate/848444
+[node-mariasql]: https://github.com/mscdex/node-mariasql
+[contributors]: https://github.com/sidorares/node-mysql2/graphs/contributors
+[contributing]: https://github.com/sidorares/node-mysql2/blob/master/Contributing.md
+[docs-base]: https://sidorares.github.io/node-mysql2/docs
+[docs-base-zh-CN]: https://sidorares.github.io/node-mysql2/zh-CN/docs
+[docs-base-pt-BR]: https://sidorares.github.io/node-mysql2/pt-BR/docs
+[docs-prepared-statements]: https://sidorares.github.io/node-mysql2/docs/documentation/prepared-statements
+[docs-mysql-server]: https://sidorares.github.io/node-mysql2/docs/documentation/mysql-server
+[docs-promise-wrapper]: https://sidorares.github.io/node-mysql2/docs/documentation/promise-wrapper
+[docs-authentication-switch]: https://sidorares.github.io/node-mysql2/docs/documentation/authentication-switch
+[docs-streams]: https://sidorares.github.io/node-mysql2/docs/documentation/extras
+[docs-typescript-docs]: https://sidorares.github.io/node-mysql2/docs/documentation/typescript-examples
+[docs-qs-pooling]: https://sidorares.github.io/node-mysql2/docs#using-connection-pools
+[docs-qs-first-query]: https://sidorares.github.io/node-mysql2/docs#first-query
+[docs-qs-using-prepared-statements]: https://sidorares.github.io/node-mysql2/docs#using-prepared-statements
+[docs-examples]: https://sidorares.github.io/node-mysql2/docs/examples
+[docs-faq]: https://sidorares.github.io/node-mysql2/docs/faq
+[docs-documentation]: https://sidorares.github.io/node-mysql2/docs/documentation
+[docs-contributing]: https://sidorares.github.io/node-mysql2/docs/contributing/website
+[coverage]: https://img.shields.io/codecov/c/github/sidorares/node-mysql2
+[coverage-url]: https://app.codecov.io/github/sidorares/node-mysql2
+[ci-url]: https://github.com/sidorares/node-mysql2/actions/workflows/ci-coverage.yml?query=branch%3Amaster
+[ci-image]: https://img.shields.io/github/actions/workflow/status/sidorares/node-mysql2/ci-coverage.yml?event=push&style=flat&label=CI&branch=master
 
- * No need for native code compilation. Quick to install, works on Windows and in sandboxed environments like [Cloud9](http://c9.io).
- * Used in popular projects like [Express.js (body_parser)](https://github.com/expressjs/body-parser), 
-   [Grunt](http://gruntjs.com/), [Nodemailer](http://www.nodemailer.com/), [Yeoman](http://yeoman.io/) and others.
- * Faster than [node-iconv](https://github.com/bnoordhuis/node-iconv) (see below for performance comparison).
- * Intuitive encode/decode API, including Streaming support.
- * In-browser usage via [browserify](https://github.com/substack/node-browserify) or [webpack](https://webpack.js.org/) (~180kb gzip compressed with Buffer shim included).
- * Typescript [type definition file](https://github.com/ashtuchkin/iconv-lite/blob/master/lib/index.d.ts) included.
- * React Native is supported (need to install `stream` module to enable Streaming API).
- * License: MIT.
+# MySQL2
 
-[![NPM Stats](https://nodei.co/npm/iconv-lite.png)](https://npmjs.org/package/iconv-lite/)  
-[![Build Status](https://travis-ci.org/ashtuchkin/iconv-lite.svg?branch=master)](https://travis-ci.org/ashtuchkin/iconv-lite)
-[![npm](https://img.shields.io/npm/v/iconv-lite.svg)](https://npmjs.org/package/iconv-lite/)
-[![npm downloads](https://img.shields.io/npm/dm/iconv-lite.svg)](https://npmjs.org/package/iconv-lite/)
-[![npm bundle size](https://img.shields.io/bundlephobia/min/iconv-lite.svg)](https://npmjs.org/package/iconv-lite/)
+[![NPM Version][npm-image]][npm-url]
+[![NPM Downloads][downloads-image]][downloads-url]
+[![Node.js Version][node-version-image]][node-version-url]
+[![GitHub Workflow Status (with event)][ci-image]][ci-url]
+[![Codecov][coverage]][coverage-url]
+[![License][license-image]][license-url]
 
-## Usage
-### Basic API
-```javascript
-var iconv = require('iconv-lite');
+[English][docs-base] | [简体中文][docs-base-zh-CN] | [Português (BR)][docs-base-pt-BR]
 
-// Convert from an encoded buffer to a js string.
-str = iconv.decode(Buffer.from([0x68, 0x65, 0x6c, 0x6c, 0x6f]), 'win1251');
+> MySQL client for Node.js with focus on performance. Supports prepared statements, non-utf8 encodings, binary log protocol, compression, ssl [much more][docs-documentation].
 
-// Convert from a js string to an encoded buffer.
-buf = iconv.encode("Sample input string", 'win1251');
+**Table of Contents**
 
-// Check if encoding is supported
-iconv.encodingExists("us-ascii")
-```
+- [History and Why MySQL2](#history-and-why-mysql2)
+- [Installation](#installation)
+- [Documentation](#documentation)
+- [Acknowledgements](#acknowledgements)
+- [Contributing](#contributing)
 
-### Streaming API
-```javascript
+## History and Why MySQL2
 
-// Decode stream (from binary data stream to js strings)
-http.createServer(function(req, res) {
-    var converterStream = iconv.decodeStream('win1251');
-    req.pipe(converterStream);
+MySQL2 project is a continuation of [MySQL-Native][mysql-native]. Protocol parser code was rewritten from scratch and api changed to match popular [Node MySQL][node-mysql]. MySQL2 team is working together with [Node MySQL][node-mysql] team to factor out shared code and move it under [mysqljs][mysqljs] organization.
 
-    converterStream.on('data', function(str) {
-        console.log(str); // Do something with decoded strings, chunk-by-chunk.
-    });
-});
+MySQL2 is mostly API compatible with [Node MySQL][node-mysql] and supports majority of features. MySQL2 also offers these additional features:
 
-// Convert encoding streaming example
-fs.createReadStream('file-in-win1251.txt')
-    .pipe(iconv.decodeStream('win1251'))
-    .pipe(iconv.encodeStream('ucs2'))
-    .pipe(fs.createWriteStream('file-in-ucs2.txt'));
+- Faster / Better Performance
+- [Prepared Statements][docs-prepared-statements]
+- MySQL Binary Log Protocol
+- [MySQL Server][docs-mysql-server]
+- Extended support for Encoding and Collation
+- [Promise Wrapper][docs-promise-wrapper]
+- Compression
+- SSL and [Authentication Switch][docs-authentication-switch]
+- [Custom Streams][docs-streams]
+- [Pooling][docs-qs-pooling]
 
-// Sugar: all encode/decode streams have .collect(cb) method to accumulate data.
-http.createServer(function(req, res) {
-    req.pipe(iconv.decodeStream('win1251')).collect(function(err, body) {
-        assert(typeof body == 'string');
-        console.log(body); // full request body string
-    });
-});
-```
+## Installation
 
-## Supported encodings
-
- *  All node.js native encodings: utf8, ucs2 / utf16-le, ascii, binary, base64, hex.
- *  Additional unicode encodings: utf16, utf16-be, utf-7, utf-7-imap, utf32, utf32-le, and utf32-be.
- *  All widespread singlebyte encodings: Windows 125x family, ISO-8859 family, 
-    IBM/DOS codepages, Macintosh family, KOI8 family, all others supported by iconv library. 
-    Aliases like 'latin1', 'us-ascii' also supported.
- *  All widespread multibyte encodings: CP932, CP936, CP949, CP950, GB2312, GBK, GB18030, Big5, Shift_JIS, EUC-JP.
-
-See [all supported encodings on wiki](https://github.com/ashtuchkin/iconv-lite/wiki/Supported-Encodings).
-
-Most singlebyte encodings are generated automatically from [node-iconv](https://github.com/bnoordhuis/node-iconv). Thank you Ben Noordhuis and libiconv authors!
-
-Multibyte encodings are generated from [Unicode.org mappings](http://www.unicode.org/Public/MAPPINGS/) and [WHATWG Encoding Standard mappings](http://encoding.spec.whatwg.org/). Thank you, respective authors!
-
-
-## Encoding/decoding speed
-
-Comparison with node-iconv module (1000x256kb, on MacBook Pro, Core i5/2.6 GHz, Node v0.12.0). 
-Note: your results may vary, so please always check on your hardware.
-
-    operation             iconv@2.1.4   iconv-lite@0.4.7
-    ----------------------------------------------------------
-    encode('win1251')     ~96 Mb/s      ~320 Mb/s
-    decode('win1251')     ~95 Mb/s      ~246 Mb/s
-
-## BOM handling
-
- * Decoding: BOM is stripped by default, unless overridden by passing `stripBOM: false` in options
-   (f.ex. `iconv.decode(buf, enc, {stripBOM: false})`).
-   A callback might also be given as a `stripBOM` parameter - it'll be called if BOM character was actually found.
- * If you want to detect UTF-8 BOM when decoding other encodings, use [node-autodetect-decoder-stream](https://github.com/danielgindi/node-autodetect-decoder-stream) module.
- * Encoding: No BOM added, unless overridden by `addBOM: true` option.
-
-## UTF-16 Encodings
-
-This library supports UTF-16LE, UTF-16BE and UTF-16 encodings. First two are straightforward, but UTF-16 is trying to be
-smart about endianness in the following ways:
- * Decoding: uses BOM and 'spaces heuristic' to determine input endianness. Default is UTF-16LE, but can be 
-   overridden with `defaultEncoding: 'utf-16be'` option. Strips BOM unless `stripBOM: false`.
- * Encoding: uses UTF-16LE and writes BOM by default. Use `addBOM: false` to override.
-
-## UTF-32 Encodings
-
-This library supports UTF-32LE, UTF-32BE and UTF-32 encodings. Like the UTF-16 encoding above, UTF-32 defaults to UTF-32LE, but uses BOM and 'spaces heuristics' to determine input endianness. 
- * The default of UTF-32LE can be overridden with the `defaultEncoding: 'utf-32be'` option. Strips BOM unless `stripBOM: false`.
- * Encoding: uses UTF-32LE and writes BOM by default. Use `addBOM: false` to override. (`defaultEncoding: 'utf-32be'` can also be used here to change encoding.)
-
-## Other notes
-
-When decoding, be sure to supply a Buffer to decode() method, otherwise [bad things usually happen](https://github.com/ashtuchkin/iconv-lite/wiki/Use-Buffers-when-decoding).  
-Untranslatable characters are set to � or ?. No transliteration is currently supported.  
-Node versions 0.10.31 and 0.11.13 are buggy, don't use them (see #65, #77).  
-
-## Testing
+MySQL2 is free from native bindings and can be installed on Linux, Mac OS or Windows without any issues.
 
 ```bash
-$ git clone git@github.com:ashtuchkin/iconv-lite.git
-$ cd iconv-lite
-$ npm install
-$ npm test
-    
-$ # To view performance:
-$ node test/performance.js
-
-$ # To view test coverage:
-$ npm run coverage
-$ open coverage/lcov-report/index.html
+npm install --save mysql2
 ```
+
+If you are using TypeScript, you will need to install `@types/node`.
+
+```bash
+npm install --save-dev @types/node
+```
+
+> For TypeScript documentation and examples, see [here][docs-typescript-docs].
+
+## Documentation
+
+- [Quickstart][docs-base]
+  - [First Query][docs-qs-first-query], [Using Prepared Statements][docs-qs-using-prepared-statements], [Using Connection Pools][docs-qs-pooling] and more.
+- [Documentation][docs-documentation]
+- [Examples][docs-examples]
+- [FAQ][docs-faq]
+
+## Acknowledgements
+
+- Internal protocol is written by [@sidorares][sidorares] [MySQL-Native][mysql-native].
+- Constants, SQL parameters interpolation, Pooling, `ConnectionConfig` class taken from [Node MySQL][node-mysql].
+- SSL upgrade code based on [@TooTallNate][TooTallNate] [code][starttls.js].
+- Secure connection / compressed connection api flags compatible to [MariaSQL][node-mariasql] client.
+- [Contributors][contributors].
+
+## Contributing
+
+Want to improve something in **MySQL2**?
+Please check [Contributing.md][contributing] for detailed instruction on how to get started.
+
+To contribute in **MySQL2 Documentation**, please visit the [Website Contributing Guidelines][docs-contributing] for detailed instruction on how to get started.
